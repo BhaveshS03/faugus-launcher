@@ -28,7 +28,7 @@ AppDir:
       - python3-pygame
       - imagemagick
       - libcanberra-gtk3-0
-      - canberra-gtk-play
+      - gnome-session-canberra
       - vulkan-tools
       - shared-mime-info
       - desktop-file-utils
