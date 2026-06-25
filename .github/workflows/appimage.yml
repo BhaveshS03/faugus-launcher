@@ -22,13 +22,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            meson \
             ninja-build \
             patchelf \
             zsync \
             python3-pip \
             python3-setuptools \
             libglib2.0-dev
+          python3 -m pip install meson
 
       - name: Build and install app to AppDir
         run: |
