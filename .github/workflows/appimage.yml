@@ -1,0 +1,65 @@
+name: Build AppImage
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-appimage:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            meson \
+            ninja-build \
+            patchelf \
+            zsync \
+            python3-pip \
+            python3-setuptools \
+            libglib2.0-dev
+
+      - name: Build and install app to AppDir
+        run: |
+          meson setup builddir --prefix=/usr
+          meson install -C builddir --destdir="$PWD/AppDir"
+
+      - name: Extract version and update recipe
+        run: |
+          VERSION=$(grep -m1 "version:" meson.build | cut -d"'" -f2)
+          echo "Extracted version: $VERSION"
+          sed -i "s/version: 1.22.6/version: $VERSION/g" AppImageBuilder.yml
+
+      - name: Install PyPI dependencies into AppDir
+        run: |
+          # Install vdf, icoextract, and pefile (not available in standard Ubuntu apt sources)
+          # directly into the AppDir dist-packages folder so they are bundled inside the AppImage.
+          python3 -m pip install --target="$PWD/AppDir/usr/lib/python3/dist-packages/" vdf icoextract pefile
+
+      - name: Install appimage-builder
+        run: |
+          python3 -m pip install appimage-builder
+
+      - name: Build AppImage
+        env:
+          # Required for appimage-builder to run successfully in dockerless CI
+          UPDATE_INFO: 'none'
+        run: |
+          appimage-builder --recipe AppImageBuilder.yml
+
+      - name: Upload AppImage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: faugus-launcher-AppImage
+          path: ./*.AppImage
