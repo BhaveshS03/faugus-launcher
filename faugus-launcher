@@ -1,8 +1,29 @@
-#!/bin/sh
+#!/usr/bin/env python3
+import sys
+import runpy
 
-case "$1" in
-	--shortcut) exec python3 -m faugus.shortcut "$2";;
-	--game)     exec python3 -m faugus.runner --game "$2";;
-	--run)      exec python3 -m faugus.runner "$2";;
-	*)          exec python3 -m faugus.launcher "$@";;
-esac
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        first_arg = sys.argv[1]
+        if first_arg == "--shortcut":
+            if len(sys.argv) > 2:
+                sys.argv = [sys.argv[0], sys.argv[2]]
+            else:
+                sys.argv = [sys.argv[0]]
+            runpy.run_module("faugus.shortcut", run_name="__main__")
+        elif first_arg == "--game":
+            if len(sys.argv) > 2:
+                sys.argv = [sys.argv[0], "--game", sys.argv[2]]
+            else:
+                sys.argv = [sys.argv[0], "--game"]
+            runpy.run_module("faugus.runner", run_name="__main__")
+        elif first_arg == "--run":
+            if len(sys.argv) > 2:
+                sys.argv = [sys.argv[0], sys.argv[2]]
+            else:
+                sys.argv = [sys.argv[0]]
+            runpy.run_module("faugus.runner", run_name="__main__")
+        else:
+            runpy.run_module("faugus.launcher", run_name="__main__")
+    else:
+        runpy.run_module("faugus.launcher", run_name="__main__")
